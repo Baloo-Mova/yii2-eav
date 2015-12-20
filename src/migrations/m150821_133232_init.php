@@ -17,7 +17,7 @@ class m150821_133232_init extends Migration
         }
         
         $this->tables = [
-            'entity' => "{{%{$entityName}}}",
+            'entity' => "{{%{$entityName}_entity}}",
             'attribute' => "{{%{$entityName}_attribute}}",
             'attribute_type' => "{{%{$entityName}_attribute_type}}",
             'value' => "{{%{$entityName}_attribute_value}}",
@@ -68,16 +68,20 @@ class m150821_133232_init extends Migration
             'id' => Schema::TYPE_PK,
             'entityName' => Schema::TYPE_STRING,
             'entityModel' => Schema::TYPE_STRING,
+            'categoryId' => Schema::TYPE_INTEGER
         ], $options);
 
         $this->createTable($this->tables['attribute'], [
             'id' => Schema::TYPE_PK,
             'entityId' => Schema::TYPE_INTEGER,
             'typeId' => Schema::TYPE_INTEGER,
+            'type'=> Schema::TYPE_STRING,
+            'description' => Schema::TYPE_STRING,
             'name' => Schema::TYPE_STRING,
             'label' => Schema::TYPE_STRING,
             'defaultValue' => Schema::TYPE_STRING,
             'defaultOptionId' => Schema::TYPE_INTEGER,
+            'order'=> Schema::TYPE_INTEGER,
             'required' => Schema::TYPE_BOOLEAN . ' DEFAULT 1',
         ], $options);
 
@@ -100,10 +104,14 @@ class m150821_133232_init extends Migration
             'id' => Schema::TYPE_PK,
             'attributeId' => Schema::TYPE_INTEGER,
             'value' => Schema::TYPE_STRING,
+            'defaultOptionId' => Schema::TYPE_INTEGER
         ], $options);
 
         if($this->db->driverName != "sqlite"){
               
+            $this->addForeignKey('FK_Attribute_defaultOptionId', 
+              $this->tables['attribute'], 'defaultOptionId', $this->tables['option'], 'id', "CASCADE", "NO ACTION");
+             
             $this->addForeignKey('FK_Attribute_typeId', 
               $this->tables['attribute'], 'typeId', $this->tables['attribute_type'], 'id', "CASCADE", "NO ACTION");
               
@@ -131,6 +139,7 @@ class m150821_133232_init extends Migration
     public function safeDown()
     {
         if($this->db->driverName != "sqlite"){
+            $this->dropForeignKey('FK_Attribute_defaultOptionId', $this->tables['attribute']);
             $this->dropForeignKey('FK_Attribute_typeId', $this->tables['attribute']);
             $this->dropForeignKey('FK_EntityId', $this->tables['attribute']);
             $this->dropForeignKey('FK_Value_entityId', $this->tables['value']);
